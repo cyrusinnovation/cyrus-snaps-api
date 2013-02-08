@@ -19,7 +19,8 @@ Run the local server using rackup:
 <tt>bundle exec rackup config.ru</tt>
 
 == Deploying
-Deployment is handled by Heroku.
+Deployment is handled by Heroku. Two environment variables must be set for the
+Amazon S3 bucket that stores the photos: S3_KEY & S3_SECRET.
 
 == License
 Copyright (c) 2013 Bob Nadler, Jr.
