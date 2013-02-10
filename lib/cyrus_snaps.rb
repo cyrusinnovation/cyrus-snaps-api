@@ -22,6 +22,13 @@ module CyrusSnaps
         config.storage     = :file
         config.store_dir   = 'tmp/uploads'
       end
+
+      get '/tmp/uploads/:filename' do
+        file = File.expand_path("../../tmp/uploads/#{params[:filename]}", __FILE__)
+        halt(404, "Can't find #{file}") unless File.exist?(file)
+        content_type :png
+        send_file(file)
+      end
     end
 
     configure :production do
