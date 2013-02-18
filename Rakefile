@@ -1,11 +1,10 @@
 require "rake/testtask"
 require "rdoc/task"
 
-DEFAULT_TASKS    = %w[test flog flay]
+DEFAULT_TASKS    = %w[test:all flog flay]
 MAIN_RDOC        = 'README.rdoc'
 EXTRA_RDOC_FILES = [MAIN_RDOC]
 LIB_FILES        = Dir["lib/**/*.rb"]
-TEST_FILES       = Dir["test/**/*_test.rb"]
 TITLE            = 'Cyrus Snaps'
 
 # Import external rake tasks
@@ -14,9 +13,52 @@ Dir.glob('tasks/*.rake').each { |r| import r }
 desc "Default tasks: #{DEFAULT_TASKS.join(', ')}"
 task :default => DEFAULT_TASKS
 
-Rake::TestTask.new do |t|
-  t.libs << 'test'
-  t.test_files = TEST_FILES
+namespace :server do
+  pid = -1
+  task :start do
+    pid = fork do
+      exec 'bundle exec rackup -p 3000 config.ru'
+    end
+    puts "\n<= Server starting with PID ##{pid}"
+    sleep 2
+  end
+
+  task :stop do
+    if -1 == pid
+      puts "\n<= No server to stop; PID is #{pid}"
+    else
+      print "\n<= Stopping server with PID ##{pid}..."
+      Process.kill "TERM", pid
+      Process.wait pid
+      puts "stopped"
+    end
+  end
+end
+
+namespace :test do
+  Rake::TestTask.new(:unit) do |t|
+    t.libs << 'test'
+    t.test_files = Dir["test/unit/**/*_test.rb"]
+  end
+
+  Rake::TestTask.new(:functional) do |t|
+    t.libs << 'test'
+    t.test_files = Dir["test/functional/**/*_test.rb"]
+  end
+
+  Rake::TestTask.new(:integration) do |t|
+    t.libs << 'test'
+    t.test_files = Dir["test/integration/**/*_test.rb"]
+  end
+
+  desc "Run all tests"
+  task :all => %w[test:unit test:functional test:integration]
+end
+
+task 'test:integration' => ['server:start']
+
+Rake::Task['test:integration'].enhance do |t|
+  Rake.application['server:stop'].execute
 end
 
 RDoc::Task.new do |t|
