@@ -9,9 +9,8 @@ module CyrusSnaps
     include Rack::Test::Methods
     include Rack::Test::Assertions
 
-    setup do
-      DB[:photos].delete
-      DB[:photos] << {
+    let(:photo) do
+      {
         :uuid => 'abc-123',
         :content_type => 'image/png',
         :file_size => 100,
@@ -23,33 +22,39 @@ module CyrusSnaps
     end
 
     test "GET /photos" do
+      PhotoQuery.any_instance.expects(:all).returns([photo])
+
       get '/photos'
+
       assert_response :ok
       assert_content_type :json
-      assert_body_contains('[{"uuid":"abc-123","content_type":"image/png","file_size":100,"filename":"test.png","latitude":0.0,"longitude":0.0,"created_at":"2013-01-27T17:46:01-05:00","updated_at":"2013-01-27T17:46:01-05:00","url":"/uploads"}]')
+      assert_body_contains(JSON.generate([photo]))
     end
 
     test "GET /photos/:uuid" do
+      PhotoQuery.any_instance.expects(:by_uuid).with('abc-123').returns(photo)
+
       get '/photos/abc-123'
+
       assert_response :ok
       assert_content_type :json
-      assert_body_contains('{"uuid":"abc-123","content_type":"image/png","file_size":100,"filename":"test.png","latitude":0.0,"longitude":0.0,"created_at":"2013-01-27T17:46:01-05:00","updated_at":"2013-01-27T17:46:01-05:00","url":"/uploads"}')
+      assert_body_contains(JSON.generate(photo))
     end
 
     test "successful POST /photos" do
-      DB[:photos].delete
       filename = File.join(TEST_DATA_DIR, 'test_image.png')
       image = Rack::Test::UploadedFile.new(filename, 'image/png')
 
+      UploadPhoto.expects(:call)
+
       post '/photos', :photo => {
-        :latitude => 1.234,
+        :latitude  => 1.234,
         :longitude => 2.345,
-        :image => image
+        :image     => image
       }
 
       assert_response :created
       assert_content_type :json
-      assert_equal(1, DB[:photos].count)
     end
 
     private
