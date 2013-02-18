@@ -12,6 +12,7 @@ require 'test/unit'
 require 'carrierwave'
 require 'contest'
 require 'mocha/setup'
+require 'pp'
 require 'sequel'
 
 $LOAD_PATH.unshift(File.expand_path('../../lib', __FILE__))
