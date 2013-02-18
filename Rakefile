@@ -13,29 +13,28 @@ Dir.glob('tasks/*.rake').each { |r| import r }
 desc "Default tasks: #{DEFAULT_TASKS.join(', ')}"
 task :default => DEFAULT_TASKS
 
-namespace :server do
-  pid = -1
-  task :start do
-    pid = fork do
-      exec 'bundle exec rackup -p 3000 config.ru'
-    end
-    puts "\n<= Server starting with PID ##{pid}"
-    sleep 2
-  end
-
-  task :stop do
-    if -1 == pid
-      puts "\n<= No server to stop; PID is #{pid}"
-    else
-      print "\n<= Stopping server with PID ##{pid}..."
-      Process.kill "TERM", pid
-      Process.wait pid
-      puts "stopped"
-    end
-  end
-end
-
 namespace :test do
+  namespace :server do
+    pid = -1
+    task :start do
+      ENV['RACK_ENV'] = 'test'
+      pid = fork { exec 'bundle exec rackup -p 3000 config.ru' }
+      puts "\n<= Server starting with PID ##{pid}"
+      sleep 2
+    end
+
+    task :stop do
+      if -1 == pid
+        puts "\n<= No server to stop; PID is #{pid}"
+      else
+        print "\n<= Stopping server with PID ##{pid}..."
+        Process.kill "TERM", pid
+        Process.wait pid
+        puts "stopped"
+      end
+    end
+  end
+
   Rake::TestTask.new(:unit) do |t|
     t.libs << 'test'
     t.test_files = Dir["test/unit/**/*_test.rb"]
@@ -55,10 +54,10 @@ namespace :test do
   task :all => %w[test:unit test:functional test:integration]
 end
 
-task 'test:integration' => ['server:start']
+task 'test:integration' => ['test:server:start']
 
 Rake::Task['test:integration'].enhance do |t|
-  Rake.application['server:stop'].execute
+  Rake.application['test:server:stop'].execute
 end
 
 RDoc::Task.new do |t|
