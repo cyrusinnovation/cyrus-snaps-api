@@ -18,7 +18,7 @@ module CyrusSnaps
     def call
       uploader.store!(payload)
 
-      album.insert({
+      album << {
         :uuid => uuid,
         :latitude => coordinates.latitude,
         :longitude => coordinates.longitude,
@@ -28,7 +28,7 @@ module CyrusSnaps
         :content_type => payload[:type],
         :file_size => File.size(payload[:tempfile]),
         :url => uploader.url
-      })
+      }
 
       uuid
     end

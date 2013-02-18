@@ -14,12 +14,12 @@ module CyrusSnaps
     end
 
     let(:coordinates) { Coordinates.new(1.234, 2.345) }
-    let(:album) { DB[:photos] }
+    let(:album) { [] }
     let(:now) { Time.new }
 
     let(:photo) do
       uuid = UploadPhoto.new(coordinates, payload, album).call
-      album.where(:uuid => uuid).first
+      album.first
     end
 
     setup do
@@ -54,7 +54,8 @@ module CyrusSnaps
     end
 
     test "stores the photo in the album" do
-      assert_not_nil(photo, "expected #{album.all} to include #{photo}")
+      assert_not_nil(photo, "expected #{album} to include #{photo}")
+      assert_equal(1, album.size)
     end
   end
 end
