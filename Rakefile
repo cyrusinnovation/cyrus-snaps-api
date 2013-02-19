@@ -15,22 +15,22 @@ task :default => DEFAULT_TASKS
 
 namespace :test do
   namespace :server do
-    pid = -1
     task :start do
       ENV['RACK_ENV'] = 'test'
-      pid = fork { exec 'bundle exec rackup -p 3000 config.ru' }
+      pid = fork { exec 'bundle exec rackup --port 3000 --pid test_server.pid config.ru' }
       puts "\n<= Server starting with PID ##{pid}"
       sleep 2
     end
 
     task :stop do
-      if -1 == pid
-        puts "\n<= No server to stop; PID is #{pid}"
-      else
+      if File.exist?('test_server.pid')
+        pid = File.read('test_server.pid').to_i
         print "\n<= Stopping server with PID ##{pid}..."
         Process.kill "TERM", pid
         Process.wait pid
         puts "stopped"
+      else
+        puts "\n<= No server to stop"
       end
     end
   end
