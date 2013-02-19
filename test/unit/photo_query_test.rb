@@ -6,7 +6,7 @@ module CyrusSnaps
     DB = Sequel.sqlite.tap do |db|
       Sequel.extension :migration
       Sequel::Migrator.run(db, 'db/migrate')
-      puts '<= in memory test database created'
+      puts '<= in memory test database created for photo query test'
     end
 
     DB[:photos] << {

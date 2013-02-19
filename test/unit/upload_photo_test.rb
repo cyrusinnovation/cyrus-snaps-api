@@ -10,7 +10,13 @@ module CyrusSnaps
   class UploadPhotoTest < Test::Unit::TestCase
     let(:payload) do
       filename = File.join(TEST_DATA_DIR, 'test_image.png')
-      Rack::Test::UploadedFile.new(filename, 'image/png')
+      image = Rack::Test::UploadedFile.new(filename, 'image/png')
+
+      {
+        :filename => image.original_filename,
+        :type     => image.content_type,
+        :tempfile => image
+      }
     end
 
     let(:coordinates) { Coordinates.new(1.234, 2.345) }

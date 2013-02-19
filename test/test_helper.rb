@@ -1,5 +1,4 @@
 ENV['RACK_ENV']     = 'test'
-ENV['DATABASE_URL'] = 'sqlite:/'
 
 require 'bundler/setup'
 
@@ -26,11 +25,7 @@ CarrierWave.configure do |config|
   config.store_dir = 'tmp/uploads'
 end
 
-Sequel.extension :migration
-DB = Sequel.sqlite.tap do |db|
-  Sequel::Migrator.run(db, 'db/migrate')
-  puts '<= in memory test database created'
-end
+DB = {}
 
 class Test::Unit::TestCase
   # Syntactic sugar for defining a memoized helper method.

@@ -12,7 +12,7 @@ module CyrusSnaps
     def initialize(coordinates, payload, album=DB[:photos])
       @coordinates = coordinates
       @album = album
-      parse_payload(payload)
+      @payload = payload
     end
 
     def call
@@ -41,18 +41,6 @@ module CyrusSnaps
 
     def uuid
       @uuid ||= UUID.new.generate
-    end
-
-    def parse_payload(payload)
-      if payload.is_a?(Hash)
-        @payload = payload
-      else
-        @payload = {
-          :filename => payload.original_filename,
-          :type     => payload.content_type,
-          :tempfile => payload
-        }
-      end
     end
   end
 end

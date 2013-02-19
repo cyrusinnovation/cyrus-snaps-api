@@ -2,25 +2,23 @@ require 'carrierwave'
 require 'json'
 require 'sequel'
 require 'sinatra/base'
+require 'uuid'
 
 require_relative 'cyrus_snaps/coordinates'
 require_relative 'cyrus_snaps/photo_query'
 require_relative 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps
-  unless ENV['RACK_ENV'] == 'test'
-    DB = Sequel.connect(ENV['DATABASE_URL'] || 'sqlite://db/development.db')
-  end
-
   class Server < Sinatra::Base
     configure :development do
       require 'sinatra/reloader'
       register Sinatra::Reloader
 
       CarrierWave.configure do |config|
-        config.cache_dir   = 'tmp/cache'
-        config.storage     = :file
-        config.store_dir   = 'tmp/uploads'
+        config.cache_dir = 'tmp/cache'
+        config.root      = File.expand_path('../../', __FILE__)
+        config.storage   = :file
+        config.store_dir = 'tmp/uploads'
       end
 
       get '/tmp/uploads/:filename' do
@@ -28,6 +26,15 @@ module CyrusSnaps
         halt(404, "Can't find #{file}") unless File.exist?(file)
         content_type :png
         send_file(file)
+      end
+    end
+
+    configure :test do
+      CarrierWave.configure do |config|
+        config.cache_dir = 'tmp/cache'
+        config.root      = File.expand_path('../../', __FILE__)
+        config.storage   = :file
+        config.store_dir = 'tmp/uploads'
       end
     end
 
@@ -47,11 +54,6 @@ module CyrusSnaps
       end
     end
 
-    configure do
-      Sequel.extension :migration
-      Sequel::Migrator.check_current(DB, 'db/migrate')
-    end
-
     before { content_type :json }
 
     get '/photos' do
@@ -60,13 +62,20 @@ module CyrusSnaps
 
     get '/photos/:uuid' do
       # TODO: What happens if the photo is not found?
-      JSON.generate({ :photo => photo_query.by_uuid(params[:uuid]) })
+      JSON.generate(photo_query.by_uuid(params[:uuid]))
     end
 
     post '/photos' do
       photo = params[:photo]
+
+      payload = {
+        :filename => photo[:image][:filename],
+        :type     => photo[:image][:type],
+        :tempfile => photo[:image][:tempfile]
+      }
+
       coordinates = Coordinates.new(photo[:latitude], photo[:longitude])
-      UploadPhoto.call(coordinates, photo[:image])
+      UploadPhoto.call(coordinates, payload)
       201
     end
 
