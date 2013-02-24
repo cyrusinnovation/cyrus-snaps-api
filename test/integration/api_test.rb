@@ -25,8 +25,9 @@ module CyrusSnaps
     end
 
     test "get all photos" do
-      resp = JSON.parse(`curl --silent #{BASE_URL}/photos`).first
-      assert_equal('abc-123', resp['uuid'])
+      resp = JSON.parse(`curl --silent #{BASE_URL}/photos`)
+      assert_equal(1, resp.count)
+      assert_equal('abc-123', resp.first['uuid'])
     end
 
     test "get photo by uuid" do
@@ -38,6 +39,7 @@ module CyrusSnaps
       filename = File.join(TEST_DATA_DIR, 'test_image.png')
 
       resp = `curl -i --silent\
+        -F photo[title]='Some Photo'\
         -F photo[latitude]=1.234\
         -F photo[longitude]=2.345\
         -F 'photo[image]=@#{filename};type=image/png'\
@@ -47,6 +49,14 @@ module CyrusSnaps
         "expected response to include 201 Created but was #{resp}")
 
       assert_equal(2, db[:photos].count)
+
+      photo = db[:photos].all.last
+      assert_equal('Some Photo', photo[:title])
+      assert_equal(1.234, photo[:latitude])
+      assert_equal(2.345, photo[:longitude])
+      assert_equal('image/png', photo[:content_type])
+      assert(photo[:filename].include?('test_image.png'),
+             "expected #{photo[:filename]} to include test_image.png")
     end
   end
 end

@@ -3,31 +3,33 @@ module CyrusSnaps
     # TODO:
     # * Validate the photo?
     # * What happens if upload fails?
-    attr_reader :coordinates, :payload, :album
+    attr_reader :title, :coordinates, :payload_file, :album
 
-    def self.call(coordinates, payload)
-      self.new(coordinates, payload).call
+    def self.call(info, payload_file)
+      self.new(info, payload_file).call
     end
 
-    def initialize(coordinates, payload, album=DB[:photos])
-      payload[:filename] = "#{uuid}-#{payload[:filename]}"
-      @coordinates = coordinates
+    def initialize(info, payload_file, album=DB[:photos])
+      payload_file[:filename] = "#{uuid}-#{payload_file[:filename]}"
+      @title = info['title']
+      @coordinates = info['coordinates']
       @album = album
-      @payload = payload
+      @payload_file = payload_file
     end
 
     def call
-      uploader.store!(payload)
+      uploader.store!(payload_file)
 
       album << {
         :uuid         => uuid,
+        :title        => title,
         :latitude     => coordinates.latitude,
         :longitude    => coordinates.longitude,
-        :filename     => payload[:filename],
+        :filename     => payload_file[:filename],
         :created_at   => Time.now,
         :updated_at   => Time.now,
-        :content_type => payload[:type],
-        :file_size    => File.size(payload[:tempfile]),
+        :content_type => payload_file[:type],
+        :file_size    => File.size(payload_file[:tempfile]),
         :url          => uploader.url
       }
 

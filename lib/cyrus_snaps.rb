@@ -68,14 +68,18 @@ module CyrusSnaps
     post '/photos' do
       photo = params[:photo]
 
-      payload = {
+      payload_file = {
         :filename => photo[:image][:filename],
         :type     => photo[:image][:type],
         :tempfile => photo[:image][:tempfile]
       }
 
-      coordinates = Coordinates.new(photo[:latitude], photo[:longitude])
-      UploadPhoto.call(coordinates, payload)
+      info = {
+        'title'       => photo[:title],
+        'coordinates' => Coordinates.new(photo[:latitude], photo[:longitude])
+      }
+
+      UploadPhoto.call(info, payload_file)
       201
     end
 

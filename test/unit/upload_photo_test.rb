@@ -8,7 +8,7 @@ require 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps
   class UploadPhotoTest < Test::Unit::TestCase
-    let(:payload) do
+    let(:payload_file) do
       filename = File.join(TEST_DATA_DIR, 'test_image.png')
       image = Rack::Test::UploadedFile.new(filename, 'image/png')
 
@@ -19,12 +19,16 @@ module CyrusSnaps
       }
     end
 
-    let(:coordinates) { Coordinates.new(1.234, 2.345) }
+    let(:info) do
+      { 'title' => 'Some Photo',
+        'coordinates' => Coordinates.new(1.234, 2.345) }
+    end
+
     let(:album) { [] }
     let(:now) { Time.new }
 
     let(:photo) do
-      uuid = UploadPhoto.new(coordinates, payload, album).call
+      uuid = UploadPhoto.new(info, payload_file, album).call
       album.first
     end
 
@@ -34,7 +38,7 @@ module CyrusSnaps
     end
 
     test "returns uuid" do
-      result = UploadPhoto.new(coordinates, payload, album).call
+      result = UploadPhoto.new(info, payload_file, album).call
       assert_equal('abc-123', result)
     end
 
@@ -43,12 +47,16 @@ module CyrusSnaps
       assert_equal(now, photo[:updated_at])
     end
 
+    test "extracts title" do
+      assert_equal('Some Photo', photo[:title])
+    end
+
     test "extracts coordinates" do
       assert_equal(1.234, photo[:latitude])
       assert_equal(2.345, photo[:longitude])
     end
 
-    test "extracts payload information" do
+    test "extracts payload file information" do
       assert_equal('abc-123-test_image.png', photo[:filename])
       assert_equal('image/png', photo[:content_type])
       assert_equal(6753, photo[:file_size])
