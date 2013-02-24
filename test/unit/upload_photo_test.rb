@@ -30,11 +30,12 @@ module CyrusSnaps
 
     setup do
       Time.stubs(:now).returns(now)
+      UUID.any_instance.expects(:generate).returns('abc-123')
     end
 
     test "returns uuid" do
-      assert_not_nil(UploadPhoto.new(coordinates, payload, album).call,
-                     "did not expect UpladPhoto#call to return nil")
+      result = UploadPhoto.new(coordinates, payload, album).call
+      assert_equal('abc-123', result)
     end
 
     test "assigns timestamps" do
@@ -48,15 +49,17 @@ module CyrusSnaps
     end
 
     test "extracts payload information" do
-      assert_equal('test_image.png', photo[:filename])
+      assert_equal('abc-123-test_image.png', photo[:filename])
       assert_equal('image/png', photo[:content_type])
       assert_equal(6753, photo[:file_size])
     end
 
     test "stores the image on file system" do
-      filename = File.expand_path('../../../tmp/uploads/test_image.png', __FILE__)
+      filename = File.expand_path(
+        '../../../tmp/uploads/abc-123-test_image.png', __FILE__)
+
       assert(File.exists?(filename), "expected #{filename} to exist")
-      assert_equal('/tmp/uploads/test_image.png', photo[:url])
+      assert_equal('/tmp/uploads/abc-123-test_image.png', photo[:url])
     end
 
     test "stores the photo in the album" do

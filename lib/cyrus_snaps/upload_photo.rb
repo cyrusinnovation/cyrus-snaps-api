@@ -10,6 +10,7 @@ module CyrusSnaps
     end
 
     def initialize(coordinates, payload, album=DB[:photos])
+      payload[:filename] = "#{uuid}-#{payload[:filename]}"
       @coordinates = coordinates
       @album = album
       @payload = payload
@@ -19,15 +20,15 @@ module CyrusSnaps
       uploader.store!(payload)
 
       album << {
-        :uuid => uuid,
-        :latitude => coordinates.latitude,
-        :longitude => coordinates.longitude,
-        :filename => payload[:filename],
-        :created_at => Time.now,
-        :updated_at => Time.now,
+        :uuid         => uuid,
+        :latitude     => coordinates.latitude,
+        :longitude    => coordinates.longitude,
+        :filename     => payload[:filename],
+        :created_at   => Time.now,
+        :updated_at   => Time.now,
         :content_type => payload[:type],
-        :file_size => File.size(payload[:tempfile]),
-        :url => uploader.url
+        :file_size    => File.size(payload[:tempfile]),
+        :url          => uploader.url
       }
 
       uuid
