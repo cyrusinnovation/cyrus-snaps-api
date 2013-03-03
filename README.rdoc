@@ -18,6 +18,12 @@ Install dependencies using Bundler:
 Run the local server using rackup:
 <tt>bundle exec rackup config.ru</tt>
 
+Note that for testing you will not need access the Amazon S3 bucket, all
+"uploaded" photos are stored on the file system under <tt>tmp/uploads</tt>.
+
+Seed data for the database can be loaded by running
+<tt>ruby db/seed.rb</tt>.
+
 == Deploying
 Deployment is handled by Heroku. Two environment variables must be set for the
 Amazon S3 bucket that stores the photos: S3_KEY & S3_SECRET.
