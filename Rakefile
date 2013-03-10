@@ -27,7 +27,6 @@ namespace :test do
         pid = File.read('test_server.pid').to_i
         print "\n<= Stopping server with PID ##{pid}..."
         Process.kill "TERM", pid
-        Process.wait pid
         puts "stopped"
       else
         puts "\n<= No server to stop"
