@@ -8,52 +8,54 @@ require 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps
   class UploadPhotoTest < Test::Unit::TestCase
-    let(:payload_file) do
-      filename = File.join(TEST_DATA_DIR, 'test_image.png')
-      image = Rack::Test::UploadedFile.new(filename, 'image/png')
-
-      {
-        :filename => image.original_filename,
-        :type     => image.content_type,
-        :tempfile => image
-      }
-    end
-
-    let(:info) do
-      { 'title' => 'Some Photo',
-        'coordinates' => Coordinates.new(1.234, 2.345) }
+    setup do
+      File.delete(temp_filename) if File.exists?(temp_filename)
+      UUID.any_instance.expects(:generate).returns('abc-123')
+      Time.stubs(:now).returns(now)
+      @uuid = UploadPhoto.new(params, album).call
     end
 
     let(:album) { [] }
     let(:now) { Time.new }
+    let(:photo) { album.find { |p| 'abc-123' == p[:uuid] } }
+    let(:temp_filename) { File.expand_path('../../../tmp/uploads/abc-123-test_image.png', __FILE__) }
 
-    let(:photo) do
-      uuid = UploadPhoto.new(info, payload_file, album).call
-      album.first
-    end
+    let(:params) do
+      filename = File.join(TEST_DATA_DIR, 'test_image.png')
 
-    setup do
-      Time.stubs(:now).returns(now)
-      UUID.any_instance.expects(:generate).returns('abc-123')
+      {
+        :title     => 'My Photo',
+        :latitude  => 1.234,
+        :longitude => 2.345,
+        :image     => {
+          :filename => File.basename(filename),
+          :type     => 'image/png',
+          :tempfile => Rack::Test::UploadedFile.new(filename, 'image/png')
+        }
+      }
     end
 
     test "returns uuid" do
-      result = UploadPhoto.new(info, payload_file, album).call
-      assert_equal('abc-123', result)
+      assert_equal('abc-123', @uuid)
     end
 
-    test "assigns timestamps" do
-      assert_equal(now, photo[:created_at])
-      assert_equal(now, photo[:updated_at])
+    test "stores the photo in the album" do
+      assert_not_nil(photo, "expected #{album} to include photo with UUID abc-123")
+      assert_equal(1, album.size)
     end
 
     test "extracts title" do
-      assert_equal('Some Photo', photo[:title])
+      assert_equal('My Photo', photo[:title])
     end
 
     test "extracts coordinates" do
       assert_equal(1.234, photo[:latitude])
       assert_equal(2.345, photo[:longitude])
+    end
+
+    test "assigns timestamps" do
+      assert_equal(now, photo[:created_at])
+      assert_equal(now, photo[:updated_at])
     end
 
     test "extracts payload file information" do
@@ -63,16 +65,8 @@ module CyrusSnaps
     end
 
     test "stores the image on file system" do
-      filename = File.expand_path(
-        '../../../tmp/uploads/abc-123-test_image.png', __FILE__)
-
-      assert(File.exists?(filename), "expected #{filename} to exist")
+      assert(File.exists?(temp_filename), "expected #{temp_filename} to exist")
       assert_equal('/tmp/uploads/abc-123-test_image.png', photo[:url])
-    end
-
-    test "stores the photo in the album" do
-      assert_not_nil(photo, "expected #{album} to include #{photo}")
-      assert_equal(1, album.size)
     end
   end
 end

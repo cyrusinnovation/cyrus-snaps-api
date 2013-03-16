@@ -42,16 +42,8 @@ module CyrusSnaps
     end
 
     test "successful POST /photos" do
-      filename = File.join(TEST_DATA_DIR, 'test_image.png')
-      image = Rack::Test::UploadedFile.new(filename, 'image/png')
-
       UploadPhoto.expects(:call)
-
-      post '/photos', :photo => {
-        :latitude  => 1.234,
-        :longitude => 2.345,
-        :image     => image
-      }
+      post '/photos', :photo => {}
 
       assert_response :created
       assert_content_type :json
