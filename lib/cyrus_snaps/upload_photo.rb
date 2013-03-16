@@ -12,8 +12,6 @@ module CyrusSnaps
     end
 
     def call
-      uuid = UUID.new.generate
-      filename_with_uuid = "#{uuid}-#{params[:image][:filename]}"
       params[:image][:filename] = filename_with_uuid
       uploader.store!(params[:image])
       album << {
@@ -36,6 +34,14 @@ module CyrusSnaps
 
     def uploader
       @uploader ||= CarrierWave::Uploader::Base.new
+    end
+
+    def uuid
+      @uuid ||= UUID.new.generate
+    end
+
+    def filename_with_uuid
+      @filename_with_uuid ||= "#{uuid}-#{params[:image][:filename]}"
     end
   end
 end

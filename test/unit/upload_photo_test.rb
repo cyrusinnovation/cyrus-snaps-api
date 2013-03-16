@@ -3,7 +3,6 @@ require 'rack/test'
 
 require 'uuid'
 
-require 'cyrus_snaps/coordinates'
 require 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps

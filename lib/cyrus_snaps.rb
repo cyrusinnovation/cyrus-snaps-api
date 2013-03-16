@@ -4,7 +4,6 @@ require 'sequel'
 require 'sinatra/base'
 require 'uuid'
 
-require_relative 'cyrus_snaps/coordinates'
 require_relative 'cyrus_snaps/photo_query'
 require_relative 'cyrus_snaps/upload_photo'
 
