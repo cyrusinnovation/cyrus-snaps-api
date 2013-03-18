@@ -1,6 +1,7 @@
 module Rack::Test::Assertions
   RESPONSE_CODES = {
     :ok             => 200,
+    :bad_request    => 400,
     :created        => 201,
     :not_authorized => 401,
     :not_found      => 404,

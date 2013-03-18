@@ -3,6 +3,7 @@ require 'rack/test'
 
 require 'uuid'
 
+require 'cyrus_snaps/photo_validator'
 require 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps
@@ -11,7 +12,13 @@ module CyrusSnaps
       File.delete(temp_filename) if File.exists?(temp_filename)
       UUID.any_instance.expects(:generate).returns('abc-123')
       Time.stubs(:now).returns(now)
-      @uuid = UploadPhoto.new(params, album).call
+
+      @block_called = false
+      cmd = UploadPhoto.new(params, album) do
+        @block_called = true
+      end
+
+      @uuid = cmd.call
     end
 
     let(:album) { [] }
@@ -66,6 +73,43 @@ module CyrusSnaps
     test "stores the image on file system" do
       assert(File.exists?(temp_filename), "expected #{temp_filename} to exist")
       assert_equal('/tmp/uploads/abc-123-test_image.png', photo[:url])
+    end
+
+    test "does not call the error block" do
+      refute(@block_called, "did not expect error block to be called")
+    end
+  end
+
+  class UploadInvalidPhotoTest < Test::Unit::TestCase
+    setup do
+      File.delete(temp_filename) if File.exists?(temp_filename)
+      PhotoValidator.any_instance.expects(:valid?).returns(false)
+
+      @block_called = false
+      cmd = UploadPhoto.new(params, album) do
+        @block_called = true
+      end
+
+      cmd.call
+    end
+
+    let(:album) { [] }
+    let(:temp_filename) { File.expand_path('../../../tmp/uploads/abc-123-test_image.png', __FILE__) }
+
+    let(:params) { Hash.new }
+
+    test "does not store the photo in the album" do
+      assert_equal(0, album.size)
+    end
+
+    test "does not store the image on file system" do
+      temp_filename = File.expand_path('../../../tmp/uploads/abc-123-test_image.png', __FILE__)
+
+      refute(File.exists?(temp_filename), "did not expect #{temp_filename} to exist")
+    end
+
+    test "calls the error block" do
+      assert(@block_called, "expected error block to be called")
     end
   end
 end

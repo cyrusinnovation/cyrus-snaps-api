@@ -4,9 +4,10 @@ module CyrusSnaps
 
     attr_reader :title, :image
 
-    def initialize(attrs={})
-      @title = attrs[:title]
-      @image = attrs[:image]
+    def initialize(attributes)
+      attrs = attributes || {}
+      @title = attrs[:title] || nil
+      @image = attrs[:image] || nil
     end
 
     def validate

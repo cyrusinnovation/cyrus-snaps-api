@@ -35,7 +35,7 @@ module CyrusSnaps
       assert_equal('abc-123', resp['uuid'])
     end
 
-    test "upload photo" do
+    test "successfully upload photo" do
       filename = File.join(TEST_DATA_DIR, 'test_image.png')
 
       resp = `curl -i --silent\
@@ -57,6 +57,25 @@ module CyrusSnaps
       assert_equal('image/png', photo[:content_type])
       assert(photo[:filename].include?('test_image.png'),
              "expected #{photo[:filename]} to include test_image.png")
+    end
+
+    test "unsuccessfully upload photo" do
+      filename = File.join(TEST_DATA_DIR, 'test_image.png')
+
+      resp = `curl -i --silent\
+        -F photo[title]=''\
+        -F photo[latitude]=1.234\
+        -F photo[longitude]=2.345\
+        -F 'photo[image]=@#{filename};type=image/png'\
+        #{BASE_URL}/photos`
+
+      assert(resp.include?("400 Bad Request"),
+        "expected response to include 400 Bad Request but was #{resp}")
+
+      assert(resp.include?('{"errors":["title can\'t be blank"]}'),
+        "expected response to include errors JSON")
+
+      assert_equal(1, db[:photos].count)
     end
   end
 end

@@ -3,8 +3,10 @@ require 'json'
 require 'sequel'
 require 'sinatra/base'
 require 'uuid'
+require 'validus'
 
 require_relative 'cyrus_snaps/photo_query'
+require_relative 'cyrus_snaps/photo_validator'
 require_relative 'cyrus_snaps/upload_photo'
 
 module CyrusSnaps
@@ -65,7 +67,9 @@ module CyrusSnaps
     end
 
     post '/photos' do
-      UploadPhoto.call(params[:photo])
+      UploadPhoto.call(params[:photo]) do |errors|
+        halt(400, JSON.generate({ :errors => errors }))
+      end
       201
     end
 

@@ -49,6 +49,16 @@ module CyrusSnaps
       assert_content_type :json
     end
 
+    test "unsuccessful POST /photos" do
+      PhotoValidator.any_instance.expects(:valid?).returns(false)
+      errors = stub(:full_messages => ["title can't be blank"])
+      PhotoValidator.any_instance.expects(:errors).returns(errors)
+      post '/photos', :photo => {}
+
+      assert_response :bad_request
+      assert_body_contains('{"errors":["title can\'t be blank"]}')
+    end
+
     private
 
     def app
