@@ -8,6 +8,7 @@ gem "sinatra",         "~> 1.3.3"
 gem "sinatra-contrib", "~> 1.3.2"
 gem "thin",            "~> 1.5.0"
 gem "uuid",            "~> 2.3.6"
+gem "validus",         "~> 0.0.1"
 
 gem "simplecov", "~> 0.7.1", :require => false, :group => :test
 
