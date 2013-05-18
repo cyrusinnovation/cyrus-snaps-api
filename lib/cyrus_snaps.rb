@@ -62,8 +62,9 @@ module CyrusSnaps
     end
 
     get '/photos/:uuid' do
-      # TODO: What happens if the photo is not found?
-      JSON.generate(photo_query.by_uuid(params[:uuid]))
+      photo = photo_query.by_uuid(params[:uuid])
+      halt(404) unless photo
+      JSON.generate(photo)
     end
 
     post '/photos' do

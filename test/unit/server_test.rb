@@ -41,6 +41,15 @@ module CyrusSnaps
       assert_body_contains(JSON.generate(photo))
     end
 
+    test "GET /photos/:uuid when uuid not found" do
+      PhotoQuery.any_instance.expects(:by_uuid).with('no-such-id').returns(nil)
+
+      get '/photos/no-such-id'
+
+      assert_response :not_found
+      assert_content_type :json
+    end
+
     test "successful POST /photos" do
       UploadPhoto.expects(:call)
       post '/photos', :photo => {}
