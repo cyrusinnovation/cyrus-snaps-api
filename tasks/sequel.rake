@@ -17,6 +17,11 @@ namespace :db do
     puts '<= db:reset executed'
   end
 
+  desc 'Drop the development database and local image files in /tmp/uploads'
+  task :drop do
+    exec('rm db/development.db && rm tmp/uploads/*')
+  end
+
   desc 'Seed the database according to db/seeds.rb'
   task :seed do
     exec('ruby db/seed.rb')
