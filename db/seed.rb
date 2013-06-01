@@ -69,7 +69,7 @@ points_of_interest.each do |location|
     :longitude    => location[:longitude],
     :created_at   => Time.new,
     :updated_at   => Time.new,
-    :url          => "/tmp/uploads/#{filename_with_uuid}"
+    :url          => "http://localhost:9292/tmp/uploads/#{filename_with_uuid}"
   }
 end
 
